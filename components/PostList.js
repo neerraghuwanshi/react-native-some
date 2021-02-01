@@ -1,16 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, StyleSheet, RefreshControl, FlatList, ActivityIndicator } from 'react-native'
+import { 
+    View, 
+    StyleSheet, 
+    RefreshControl, 
+    FlatList, 
+    ActivityIndicator 
+} from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
+
 import { FetchPosts, FetchMorePosts } from '../store/actions/fetch'
 import PostItem from './PostItem'
-import { containerWidth, windowHeight, windowWidth } from '../constants/screenSize';
+import { 
+    containerWidth, 
+    windowHeight, 
+    windowWidth 
+} from '../constants/screenSize';
 
 
 const PostList = (props) => {
 
     const { userDetail, userProfile } = props
+
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [loadingMore, setLoadingMore] = useState(false)
+
     const dispatch = useDispatch()
 
     const fetchPosts = useCallback(() => {
@@ -29,22 +42,33 @@ const PostList = (props) => {
         fetchPosts()
     }, [])
 
-    const home = useSelector(state => state.home.homePosts)
-    const user = useSelector(state => state.user.userPosts)
-    const profile = useSelector(state => state.profile.profilePosts)
+    const home = useSelector(
+        state => state.home.homePosts
+    )
+    const user = useSelector(
+        state => state.user.userPosts
+    )
+    const profile = useSelector(
+        state => state.profile.profilePosts
+    )
     
-    let posts = userDetail ? user :
-                    userProfile ? profile : home
+    let posts = userDetail ? 
+                    user :
+                    userProfile ? 
+                        profile : 
+                        home
 
     return (
-        
         <View style={styles.container}>   
-        {posts ? <FlatList
-                data={posts} 
+            {posts ? 
+            <FlatList
+                data={posts}
                 renderItem={
-                    ({item})=><PostItem {...props} data={item}/>
+                    ({item}) => (
+                        <PostItem {...props} data={item}/>
+                    )
                 }
-                keyExtractor={(item,index)=>item.id.toString()}
+                keyExtractor={(item, index)=>item.id.toString()}
                 refreshControl={
                     <RefreshControl
                         refreshing={isRefreshing}
@@ -63,20 +87,22 @@ const PostList = (props) => {
                         <ActivityIndicator size="large"/>
                     </View>
                 }
-            />
-        : <ActivityIndicator size="large"/>}
+            /> : 
+            <ActivityIndicator size="large"/>}
         </View> 
     )
 }
 
+
 const width = () => {
-    if(windowHeight>1.3*windowWidth){
+    if(windowHeight > (1.3 * windowWidth)){
         return containerWidth()
     }
     else{
         return windowWidth
     }
 }
+
 
 const styles = StyleSheet.create({
     container : {
@@ -88,5 +114,6 @@ const styles = StyleSheet.create({
         width:width()
     }
 })
+
 
 export default React.memo(PostList)

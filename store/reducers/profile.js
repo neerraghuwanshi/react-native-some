@@ -6,33 +6,40 @@ import {
     SETPROFILE
 } from '../actions/profile';
 
+
 initialState = {
-    profile : {},
-    profilePosts:[],
-    profilePage:null,
+    profile: {},
+    profilePosts: [],
+    profilePage: null,
 }
 
-export const profilePostReducer = (state=initialState,action) => {
+
+export const profilePostReducer = (state=initialState, action) => {
     switch(action.type){
         case SETPROFILEPOSTS:
             return {
                 ...state,
-                profilePosts: action.posts
+                profilePosts: action.posts,
             }
         case SETMOREPROFILEPOSTS:
-            const morePosts = [...state.profilePosts, ...action.posts]
+            const morePosts = [
+                ...state.profilePosts, 
+                ...action.posts,
+            ]
             return {
                 ...state,
-                profilePosts: morePosts 
+                profilePosts: morePosts,
             }
         case SETPROFILEPAGE:
             return {
                 ...state,
-                profilePage: action.page
+                profilePage: action.page,
             }
         case LIKEPROFILEPOST:
             if(state.profilePosts){
-                let profilePostIndex = state.profilePosts.findIndex(post=>post.id===action.postId)
+                let profilePostIndex = state.profilePosts.findIndex(
+                    post => post.id === action.postId
+                )
                 const updatedProfilePosts = [...state.profilePosts]
                 
                 if(profilePostIndex >= 0){
@@ -40,14 +47,14 @@ export const profilePostReducer = (state=initialState,action) => {
                 }
                 return {
                     ...state,
-                    profilePosts: updatedProfilePosts
+                    profilePosts: updatedProfilePosts,
                 }
             }
         case SETPROFILE:
             if(state){
                 return {
                     ...state,
-                    profile : action.profile
+                    profile : action.profile,
                 }
             }
         default:

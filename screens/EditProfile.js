@@ -1,161 +1,154 @@
-import React, { useState, useEffect, useCallback, useReducer } from 'react'
+import React, { 
+    useState, 
+    useCallback, 
+    useReducer 
+} from 'react'
+import { useDispatch } from "react-redux";
 import { View, StyleSheet, Image } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import * as ImagePicker from 'expo-image-picker';
-import { useDispatch } from "react-redux";
 
-import {UpdateProfile} from '../store/actions/profileFunctions'
-import Input from '../components/Input'
 import Card from '../components/Card'
-import Constants from 'expo-constants'
-import { containerWidth, windowHeight, windowWidth } from '../constants/screenSize';
+import Input from '../components/Input'
 import Button from '../components/Button'
+import { pickImage } from '../helpers/pickImage'
+import { UpdateProfile } from '../store/actions/profileFunctions'
+import { 
+    containerWidth, 
+    windowHeight, 
+    windowWidth 
+} from '../constants/screenSize';
+import { 
+    formReducer, 
+    FORM_INPUT_UPDATE 
+} from '../store/reducers/formReducer'
 
-const FORM_INPUT_UPDATE = 'FORM_INPUT_UPDATE';
-
-const formReducer = (state, action) => {
-  if (action.type === FORM_INPUT_UPDATE) {
-    const updatedValues = {
-      ...state.inputValues,
-      [action.input]: action.value
-    };
-    const updatedValidities = {
-      ...state.inputValidities,
-      [action.input]: action.isValid
-    };
-    let updatedFormIsValid = true;
-    for (const key in updatedValidities) {
-      updatedFormIsValid = updatedFormIsValid && updatedValidities[key];
-    }
-    return {
-      ...state,
-      formIsValid: updatedFormIsValid,
-      inputValidities: updatedValidities,
-      inputValues: updatedValues,
-    };
-  }
-  return state;
-};
 
 function EditProfile(props) {
-    const [formState, dispatchFormState] = useReducer(formReducer, {
+
+    const initialState = {
         inputValues: {
             bio: props.navigation.getParam('Bio'),
             first_name: props.navigation.getParam('first_name'),
-            last_name: props.navigation.getParam('last_name')
+            last_name: props.navigation.getParam('last_name'),
         },
         inputValidities: {
-          first_name: true,
-          last_name: true,
-          bio: true
+            first_name: true,
+            last_name: true,
+            bio: true,
         },
         formIsValid: true,
-    });
+    }
+
+    const [
+        formState, 
+        dispatchFormState
+    ] = useReducer(formReducer, initialState);
 
     const inputChangeHandler = useCallback(
         (inputIdentifier, inputValue, inputValidity) => {
-          dispatchFormState({
-            type: FORM_INPUT_UPDATE,
-            value: inputValue,
-            isValid: inputValidity,
-            input: inputIdentifier
-          })
-        },[dispatchFormState])
+            dispatchFormState({
+                type: FORM_INPUT_UPDATE,
+                value: inputValue,
+                isValid: inputValidity,
+                input: inputIdentifier
+            })
+        }, [dispatchFormState]
+    )
 
     const { bio, first_name, last_name } = formState.inputValues
+
     const image = props.navigation.getParam('image')
-    const [photo, setPhoto] = useState(null);
-    const [touched, setTouched] = useState(false);
+
+    const [photo, setPhoto] = useState(null)
+    const [touched, setTouched] = useState(false)
+
     const dispatch = useDispatch()
 
-    useEffect(() => {
-        (async () => {
-          if (Constants.platform.ios) {
-            const { status } = await ImagePicker.requestCameraRollPermissionsAsync();
-            if (status !== 'granted') {
-              alert('Sorry, we need camera permissions to make this work!');
-            }
-          }
-        })();
-    }, []);
-
-    const pickImage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All,
-          allowsEditing: true,
-          aspect: [16, 9],
-          quality: 1
-        });
-
-        if (!result.cancelled) {
-          setPhoto(result);
-        }
-    };
-
     const save = () => {
-      setTouched(true)
-      if(formState.formIsValid){
-        dispatch(UpdateProfile(photo,{bio, first_name, last_name},props.navigation))
-      }
+        setTouched(true)
+        if(formState.formIsValid){
+            dispatch(UpdateProfile(photo,{bio, first_name, last_name},props.navigation))
+        }
     }
 
     return (
         <View style={styles.container}>
             <Card style={styles.postContainer}>
                 <TouchableOpacity
-                    onPress={pickImage}>
-                    <Image style={styles.image} resizeMode={'cover'} source={{uri: photo ? photo.uri : image}}/>
+                    onPress={()=>pickImage(setPhoto)}>
+                    <Image 
+                        style={styles.image} 
+                        resizeMode={'cover'} 
+                        source={{
+                            uri: photo ? 
+                                    photo.uri : 
+                                    image ? 
+                                        image :
+                                        'image'
+                        }}/>
                 </TouchableOpacity>
                 <Input
+                    required
                     id='first_name'
                     label='First Name'
-                    keyboardType='default'
-                    required
                     autoCapitalize='none'
-                    onInputChange={inputChangeHandler}
-                    initialValue={props.navigation.getParam('firstName')}
-                    initiallyValid={true}
+                    keyboardType='default'
+                    style={styles.input}
                     touched={touched}
-                    />
+                    initiallyValid={true}
+                    onInputChange={inputChangeHandler}
+                    maxLength={20}
+                    initialValue={
+                        props.navigation.getParam('firstName')
+                    }/>
                 <Input
                     id='last_name'
                     label='Last Name'
                     keyboardType='default'
+                    style={styles.input}
                     required
+                    maxLength={20}
                     autoCapitalize='none'
                     onInputChange={inputChangeHandler}
-                    initialValue={props.navigation.getParam('lastName')}
                     touched={touched}
                     initiallyValid={true}
-                    />
+                    initialValue={
+                        props.navigation.getParam('lastName')
+                    } />
                 <Input
                     id='bio'
                     label='Bio'
-                    keyboardType='default'
                     autoCapitalize='none'
+                    keyboardType='default'
+                    style={styles.input}
+                    maxLength={100}
+                    multiline={true}
+                    initiallyValid={true}
                     onInputChange={inputChangeHandler}
-                    initialValue={props.navigation.getParam('Bio')}
-                    initiallyValid={true}/>
+                    initialValue={
+                        props.navigation.getParam('Bio')
+                    }/>
                 <View style={styles.buttonContainer}>
                     <Button
-                      title={'Save'}
-                      onPress={save}/>
+                        title={'Save'}
+                        onPress={save}/>
                 </View>
             </Card>
         </View>
     )
 }
 
+
 const styles = StyleSheet.create({
     container : {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'whitesmoke',
-      marginLeft:'auto',
-      marginRight:'auto',
-      width:containerWidth()
-    },
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'whitesmoke',
+        marginLeft:'auto',
+        marginRight:'auto',
+        width:containerWidth()
+      },
     postContainer: {
         flex: 1,
         width: containerWidth()/1.2,
@@ -169,11 +162,16 @@ const styles = StyleSheet.create({
         height:windowWidth/1.6,
         borderRadius:windowWidth/3.2,
         marginBottom:10,
+        backgroundColor: 'black',
     },
     buttonContainer: {
-      width:'100%',
-      margin:windowHeight/20,
+        width:'100%',
+        margin:windowHeight/20,
+    },
+    input:{
+        paddingVertical: windowHeight >= 750 ? windowHeight/150 : 0,
     },
 })
+
 
 export default EditProfile

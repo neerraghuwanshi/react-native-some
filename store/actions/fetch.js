@@ -1,9 +1,26 @@
 import axios from 'axios'
 import { Alert } from 'react-native'
-import { setHomePosts, setMoreHomePosts, setHomePage } from './home'
-import { setUserPosts, setMoreUserPosts, setUserPage } from './user'
-import { setProfilePosts, setMoreProfilePosts, setProfilePage } from './profile'
-import { FetchProfile, FetchUserProfile } from './profileFunctions'
+
+import { 
+    FetchProfile, 
+    FetchUserProfile 
+} from './profileFunctions'
+import { 
+    setHomePosts, 
+    setMoreHomePosts, 
+    setHomePage 
+} from './home'
+import { 
+    setUserPosts, 
+
+    setMoreUserPosts, 
+    setUserPage 
+} from './user'
+import { 
+    setProfilePosts, 
+    setMoreProfilePosts, 
+    setProfilePage 
+} from './profile'
 
 
 export const FetchPosts = (userDetail, userProfile) => {
@@ -15,7 +32,13 @@ export const FetchPosts = (userDetail, userProfile) => {
                 "Content-Type": "application/json",
                 Authorization: `Token ${token}`
             }
-            const response = await axios.get(`http://127.0.0.1:8000/post${username ? '/username/' + username : ''}/`)
+            const response = await axios.get(
+                `http://127.0.0.1:8000/post${
+                    username ? 
+                        '/username/' + username : 
+                        ''
+                }/`
+            )
             if (response.status !== 200){
                 throw new Error('Something went wrong!')
             }
@@ -60,9 +83,11 @@ export const FetchPosts = (userDetail, userProfile) => {
 
 export const FetchMorePosts = (userDetail, userProfile) => {
     return async (dispatch, getState) => {
-        const page = userDetail ? getState().user.userPage : 
-                        userProfile ? getState().profile.profilePage 
-                        : getState().home.homePage
+        const page = userDetail ? 
+                        getState().user.userPage : 
+                        userProfile ? 
+                            getState().profile.profilePage :
+                            getState().home.homePage
         if(page){
             try {
                 const token = getState().auth.token
@@ -71,7 +96,13 @@ export const FetchMorePosts = (userDetail, userProfile) => {
                     "Content-Type": "application/json",
                     Authorization: `Token ${token}`
                 }
-                const response = await axios.get(`http://127.0.0.1:8000/post${username ? '/username/' + username : ''}/?page=${page}`)
+                const response = await axios.get(
+                    `http://127.0.0.1:8000/post${
+                        username ?
+                            '/username/' + username : 
+                            ''
+                    }/?page=${page}`
+                )
                 if (response.status !== 200){
                     throw new Error('Something went wrong!')
                 }

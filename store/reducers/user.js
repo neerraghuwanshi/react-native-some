@@ -14,40 +14,49 @@ import {
 
 
 initialState = {
-    userProfile : {},
-    userPosts:[],
-    userPage:null,
+    userProfile: {},
+    userPosts: [],
+    userPage: null,
 }
 
-export const userPostReducer = (state=initialState,action) => {
+
+export const userPostReducer = (state=initialState, action) => {
     switch(action.type){
         case SETUSERPOSTS:
             return {
                 ...state,
-                userPosts: action.posts
+                userPosts: action.posts,
             }
         case SETMOREUSERPOSTS:
-            const morePosts = [...state.userPosts, ...action.posts]
+            const morePosts = [
+                ...state.userPosts, 
+                ...action.posts,
+            ]
             return {
                 ...state,
-                userPosts: morePosts 
+                userPosts: morePosts,
             }
         case SETUSERPAGE:
             return {
                 ...state,
-                userPage: action.page
+                userPage: action.page,
             }
         case ADDUSERPOST:
             if(state.userPosts){
-                const addedPosts = [action.post, ...state.userPosts,]
+                const addedPosts = [
+                    action.post, 
+                    ...state.userPosts,
+                ]
                 return {
                     ...state,
-                    userPosts: addedPosts
+                    userPosts: addedPosts,
                 }
             }
         case LIKEUSERPOST:
             if(state.userPosts){
-                let userPostIndex = state.userPosts.findIndex(post=>post.id===action.postId)
+                let userPostIndex = state.userPosts.findIndex(
+                    post => post.id === action.postId
+                )
                 const updatedUserPosts = [...state.userPosts]
                 
                 if(userPostIndex >= 0){
@@ -55,21 +64,25 @@ export const userPostReducer = (state=initialState,action) => {
                 }
                 return {
                     ...state,
-                    userPosts: updatedUserPosts
+                    userPosts: updatedUserPosts,
                 }
             }
         case DELETEUSERPOST:
             if(state.userPosts){
                 return {
                     ...state,
-                    userPosts: state.userPosts && state.userPosts.filter(post => post.id !== action.id) 
+                    userPosts: state.userPosts ? 
+                                state.userPosts.filter(
+                                    post => post.id !== action.id
+                                ) :
+                                [],
                 }
             }
         case SETUSERPROFILE:
             if(state){
                 return {
                     ...state,
-                    userProfile : action.profile
+                    userProfile : action.profile,
                 }
             }
         case INCREASEFOLLOWING:
@@ -78,7 +91,7 @@ export const userPostReducer = (state=initialState,action) => {
                 increasedUserProfile.following_count += 1
                 return {
                     ...state,
-                    userProfile : increasedUserProfile
+                    userProfile : increasedUserProfile,
                 }
             }
         case DECREASEFOLLOWING:
@@ -87,7 +100,7 @@ export const userPostReducer = (state=initialState,action) => {
                 decreasedUserProfile.following_count -= 1
                 return {
                     ...state,
-                    userProfile : decreasedUserProfile
+                    userProfile : decreasedUserProfile,
                 }
             }
         case INCREASEPOSTS:
@@ -96,7 +109,7 @@ export const userPostReducer = (state=initialState,action) => {
                 increasedUserPosts.posts += 1
                 return {
                     ...state,
-                    userProfile : increasedUserPosts
+                    userProfile : increasedUserPosts,
                 }
             }
         case DECREASEPOSTS:
@@ -105,7 +118,7 @@ export const userPostReducer = (state=initialState,action) => {
                 decreasedUserPosts.posts -= 1
                 return {
                     ...state,
-                    userProfile : decreasedUserPosts
+                    userProfile : decreasedUserPosts,
                 }
             }
         default:

@@ -1,9 +1,13 @@
-import { SETCHATPAGE, SETCHATMESSAGES, SETMORECHATMESSAGES } from '../actions/chat';
+import { 
+    SETCHATPAGE, 
+    SETCHATMESSAGES, 
+    SETMORECHATMESSAGES,
+} from '../actions/chat';
 
 
 initialState = {
     page: null,
-    messages: null
+    messages: null,
 }
 
 export const authReducer = (state=initialState,action) => {
@@ -16,13 +20,16 @@ export const authReducer = (state=initialState,action) => {
         case SETCHATMESSAGES:
             return {
                 ...state,
-                messages: action.messages
+                messages: action.messages,
             }
         case SETMORECHATMESSAGES:
-            const moreMessages = [...state.messages, ...action.messages]
+            const moreMessages = [
+                ...state.messages, 
+                ...action.messages,
+            ]
             return {
                 ...state,
-                messages: moreMessages 
+                messages: moreMessages,
             }
         default:
             return state

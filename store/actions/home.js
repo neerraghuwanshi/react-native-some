@@ -9,21 +9,21 @@ export const DELETEHOMEPOST = 'DELETEHOMEPOST'
 export const setHomePosts = posts => {
     return {
         type: SETHOMEPOSTS,
-        posts
+        posts,
     }
 }
 
 export const setMoreHomePosts = posts => {
     return {
         type: SETMOREHOMEPOSTS,
-        posts
+        posts,
     }
 }
 
 export const setHomePage = page => {
     return {
         type: SETHOMEPAGE,
-        page
+        page,
     }
 }
 
@@ -31,20 +31,20 @@ export const likeHomePost = (postId, post) => {
     return {
         type: LIKEHOMEPOST,
         postId,
-        post
+        post,
     }
 }
 
 export const addHomePost = post => {
     return {
         type: ADDHOMEPOST,
-        post
+        post,
     }
 }
 
 export const deleteHomePost = id => {
     return {
         type: DELETEHOMEPOST,
-        id
+        id,
     }
 }

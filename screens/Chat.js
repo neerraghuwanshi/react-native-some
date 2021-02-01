@@ -1,16 +1,31 @@
 import React, {useState, useEffect, useCallback} from 'react'
-import { View, TextInput, StyleSheet, FlatList, ActivityIndicator } from 'react-native'
+import { 
+    View, 
+    TextInput,
+    StyleSheet, 
+    FlatList, 
+    ActivityIndicator 
+} from 'react-native'
+import { useSelector } from "react-redux";
+import { Ionicons } from '@expo/vector-icons'
+import { TouchableOpacity } from 'react-native-gesture-handler'
+
 import Card from '../components/Card'
 import BodyText from '../components/BodyText'
 import WebSocketInstance from '../websocket/chatWebsocket'
-import { TouchableOpacity } from 'react-native-gesture-handler'
-import { Ionicons } from '@expo/vector-icons'
-import { containerWidth, windowHeight, windowWidth } from '../constants/screenSize';
+import { 
+    containerWidth, 
+    windowHeight, 
+    windowWidth 
+} from '../constants/screenSize';
 
 
-function Chat(props) {  
+function Chat(props) {
 
-    const currentUsername = props.navigation.getParam('currentUsername')
+    const currentUsername = useSelector(
+        state => state.auth.username
+    )
+
     const chatId = props.navigation.getParam('chatId')
 
     const [message, setMessage] = useState('')
@@ -23,70 +38,81 @@ function Chat(props) {
     
     const waitForSocketConnection = (callback) => {
         setTimeout(function() {
-          if (WebSocketInstance.state() === 1) {
-            console.log("Connection is made");
-            callback();
-            return;
-          } else {
-            console.log("waiting for connection...");
-            waitForSocketConnection(callback);
-          }
+            if (WebSocketInstance.state() === 1) {
+                console.log("Connection is made");
+                callback();
+                return;
+            } else {
+                console.log("waiting for connection...");
+                waitForSocketConnection(callback);
+            }
         }, 100);
     }
 
     const initializeChat = () => {
         waitForSocketConnection(() => {
-            WebSocketInstance.addCallbacks(setConversation,addMessage,moreMessages)
+            WebSocketInstance.addCallbacks(
+                setConversation, 
+                addMessage, 
+                moreMessages,
+                fetchedMessage,
+            )
             WebSocketInstance.fetchMessages(
-            currentUsername,
-            chatId,
-            messageIndex
-            );
+                currentUsername,
+                chatId,
+                messageIndex
+            )
         });
         WebSocketInstance.connect(chatId)
     }
 
+    const setConversation = (messages) => {
+        if (messages.length === 20){
+            moreMessagesAvailable = true
+        }
+        else {
+            moreMessagesAvailable = false
+        }
+        setMessages(messages)
+        messageIndex = messageIndex + messages.length
+        loading = false
+    }
+
     const addMessage = (chatMessage) => {
-        setMessages(prevMessages=>[chatMessage,...prevMessages])
+        setMessages(
+            prevMessages=>[ chatMessage, ...prevMessages ]
+        )
         messageIndex = messageIndex + 1
+        WebSocketInstance.fetchedMessage({
+            username: currentUsername,
+            chatId,
+        })
     }
 
     const moreMessages = (messages) => {
-        if (messages.length===21){
-            setMessages(prevMessages=>[...prevMessages,...messages.slice(0,20)])
-            messageIndex = messageIndex + messages.length-1
+        if (messages.length === 20){
             moreMessagesAvailable = true
         }
-        else if (messages.length<21){
-            setMessages(prevMessages=>[...prevMessages,...messages])
-            messageIndex = messageIndex + messages.length
+        else {
             moreMessagesAvailable = false
         }
+        setMessages(prevMessages=>[...prevMessages,...messages])
+        messageIndex = messageIndex + messages.length
         loadingMore = false
     }
 
-    const setConversation = (messages) => {
-        if (messages.length===21){
-            setMessages(messages.slice(0,20))
-            messageIndex = messageIndex + messages.length - 1
-            moreMessagesAvailable = true
-        }
-        else if (messages.length<21){
-            setMessages(messages)
-            messageIndex = messageIndex + messages.length
-            moreMessagesAvailable = false
-        }
-        loading = false
+    const fetchedMessage = () => {
+
     }
     
     const sendMessageHandler = () => {
         if (message.length !== 0){
             const messageObject = {
-              from: currentUsername,
-              content: message,
-              chatId
-            };
-            WebSocketInstance.newChatMessage(messageObject);
+                from: currentUsername,
+                content: message,
+                chatId,
+            }
+            WebSocketInstance.newChatMessage(messageObject)
             setMessage('')
         }
     };
@@ -102,56 +128,67 @@ function Chat(props) {
         if (moreMessagesAvailable){
             moreMessagesAvailable = false
             loadingMore = true
-            WebSocketInstance.fetchMoreMessages(currentUsername,chatId,messageIndex)
+            WebSocketInstance.fetchMoreMessages( 
+                chatId, 
+                messageIndex
+            )
         }
-    },[moreMessagesAvailable, messageIndex])
+    }, [moreMessagesAvailable, messageIndex])
 
     const sendSize = windowWidth/40 < 30 ? 30 : windowHeight/40
 
     return (
         <View style={styles.container}>
             {loadingMore && 
-                    <View style={{marginTop:windowHeight/80}}>
-                        <ActivityIndicator size="large"/>
-                    </View>}
-        {loading ?
-        <View style={styles.messageContainer}>
-            <FlatList
-                inverted
-                data={messages} 
-                renderItem={({item})=>(
-                    <View style={currentUsername!==item.author ? styles.leftContainer : styles.rightContainer}>
-                        <Card style={styles.card}>
-                            <BodyText>{item.content}</BodyText>
-                        </Card>
-                    </View>
-                )}
-                keyExtractor={(item,index)=>item.id.toString()}
-                showsVerticalScrollIndicator={false}
-                onEndReached={fetchMoreMessages}
-                onEndReachedThreshold={0}
-                initialNumToRender={15}
-                contentConatainerStyle={styles.container}
-            /> 
-        </View> :
-        <View>
-            <ActivityIndicator size={"large"}/>
-        </View>}
-        <View style={styles.textInputContainer}>
-            <TextInput 
-                style={styles.input}
-                value={message}
-                onChangeText={(text)=>setMessage(text)}
-                autoCapitalize={'none'}/>
-                <TouchableOpacity onPress={sendMessageHandler}>
-                    <View style={styles.sendContainer}>
-                    <Ionicons name={'md-send'} size={sendSize} color={'blue'} />
-                    </View>
-                </TouchableOpacity>
-        </View>
+            <View style={{marginTop:windowHeight/80}}>
+                <ActivityIndicator size="large"/>
+            </View>}
+            {loading ?
+            <View style={styles.messageContainer}>
+                <FlatList
+                    inverted
+                    data={messages} 
+                    renderItem={({item})=>(
+                        <View 
+                            style={
+                                currentUsername!==item.author ? 
+                                    styles.leftContainer : 
+                                    styles.rightContainer
+                            }>
+                            <Card style={styles.card}>
+                                <BodyText>{item.content}</BodyText>
+                            </Card>
+                        </View>
+                    )}
+                    keyExtractor={(item,index)=>item.id.toString()}
+                    showsVerticalScrollIndicator={false}
+                    onEndReached={fetchMoreMessages}
+                    onEndReachedThreshold={0}
+                    initialNumToRender={15}
+                    contentConatainerStyle={styles.container}/> 
+            </View> :
+            <View>
+                <ActivityIndicator size={"large"}/>
+            </View>}
+            <View style={styles.textInputContainer}>
+                <TextInput 
+                    style={styles.input}
+                    value={message}
+                    onChangeText={text=>setMessage(text)}
+                    autoCapitalize={'none'}/>
+                    <TouchableOpacity onPress={sendMessageHandler}>
+                        <View style={styles.sendContainer}>
+                            <Ionicons 
+                                name={'md-send'} 
+                                size={sendSize} 
+                                color={'blue'} />
+                        </View>
+                    </TouchableOpacity>
+            </View>
         </View>
     )
 }
+
 
 const styles = StyleSheet.create({
     container : {
@@ -226,6 +263,7 @@ const styles = StyleSheet.create({
         alignItems:'center'
     }
 })
+
 
 Chat.navigationOptions = navData => {
     return {

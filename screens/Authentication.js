@@ -1,38 +1,19 @@
 import React, {useState, useEffect, useReducer, useCallback} from 'react'
-import { View, StyleSheet, KeyboardAvoidingView, ScrollView, AsyncStorage, ActivityIndicator} from 'react-native'
+import { View, StyleSheet, KeyboardAvoidingView, ScrollView, ActivityIndicator} from 'react-native'
 import { useSelector, useDispatch } from 'react-redux' 
 
 import Card from '../components/Card'
 import Input from '../components/Input'
 import { Login, SignUp, authSuccess } from '../store/actions/auth'
 import { containerWidth, windowHeight } from '../constants/screenSize'
+import AsyncStorage from '@react-native-community/async-storage'
 import Button from '../components/Button'
+import { 
+    formReducer, 
+    FORM_INPUT_UPDATE 
+} from '../store/reducers/formReducer'
+import { Platform } from 'react-native'
 
-
-const FORM_INPUT_UPDATE = 'FORM_INPUT_UPDATE';
-
-const formReducer = (state, action) => {
-  if (action.type === FORM_INPUT_UPDATE) {
-    const updatedValues = {
-      ...state.inputValues,
-      [action.input]: action.value
-    };
-    const updatedValidities = {
-      ...state.inputValidities,
-      [action.input]: action.isValid
-    };
-    let updatedFormIsValid = true;
-    for (const key in updatedValidities) {
-      updatedFormIsValid = updatedFormIsValid && updatedValidities[key];
-    }
-    return {
-      formIsValid: updatedFormIsValid,
-      inputValidities: updatedValidities,
-      inputValues: updatedValues
-    };
-  }
-  return state;
-};
 
 function Authentication(props) {
 
@@ -74,14 +55,27 @@ function Authentication(props) {
 
     const login = async() => {
         setTouched(true)
-        if(formState.formIsValid)
-        dispatch(Login(username,password))
+        if(formState.formIsValid){
+            dispatch(Login(
+                username, 
+                password, 
+                props.navigation,
+            ))
+        }
     }
 
     const signUp = async() => {
         setTouched(true)
-        if(formState.formIsValid)
-        dispatch(SignUp(username,email,password,password,firstName,lastName))
+        if(formState.formIsValid){
+            dispatch(SignUp(
+                username,
+                email,
+                password,
+                firstName,
+                lastName, 
+                props.navigation,
+            ))
+        }
     }
 
     useEffect(() => {
@@ -89,13 +83,15 @@ function Authentication(props) {
             let key = await AsyncStorage.getItem('token');
             let currentUsername = await AsyncStorage.getItem('username');
             dispatch(authSuccess(key, currentUsername))
-            if (key === null) setTriedAutoLogin(true)
+            if (key === null){
+                setTriedAutoLogin(true)
+            }
             else {
-                props.navigation.navigate('MainNavigator')
+                props.navigation.navigate('DrawerNavigator')
             }
         }
         tryLogin()
-    })
+    },[])
 
     const switchTo = () => {
         setTouched(false)
@@ -103,7 +99,8 @@ function Authentication(props) {
             inputChangeHandler('email',email,false)
             inputChangeHandler('firstName',firstName,false)
             inputChangeHandler('lastName',lastName,false)
-        }else{
+        }
+        else{
             inputChangeHandler('email',email,true)
             inputChangeHandler('firstName',firstName,true)
             inputChangeHandler('lastName',lastName,true)
@@ -112,9 +109,13 @@ function Authentication(props) {
     }
 
     return ( triedAutoLogin ?
-        <KeyboardAvoidingView behavior="position"
-        keyboardVerticalOffset={25}
-        style={styles.container}>
+        <KeyboardAvoidingView 
+            behavior={
+                Platform.OS === 'ios' ?
+                    'padding' : 
+                    ''
+            }
+            style={styles.container}>
             <Card style={styles.authContainer}>
                 <ScrollView showsVerticalScrollIndicator={false}>
                     <Input
@@ -123,6 +124,7 @@ function Authentication(props) {
                         label='Username'
                         keyboardType='default'
                         required
+                        maxLength={20}
                         autoCapitalize='none'
                         onInputChange={inputChangeHandler}
                         touched={touched}
@@ -133,6 +135,7 @@ function Authentication(props) {
                         label='Password'
                         keyboardType='default'
                         required
+                        maxLength={20}
                         secureTextEntry
                         autoCapitalize='none'
                         minLength={8}
@@ -148,6 +151,7 @@ function Authentication(props) {
                         keyboardType='default'
                         required
                         email
+                        maxLength={20}
                         autoCapitalize='none'
                         onInputChange={inputChangeHandler}
                         touched={touched}
@@ -158,6 +162,7 @@ function Authentication(props) {
                         label='First Name'
                         keyboardType='default'
                         required
+                        maxLength={20}
                         autoCapitalize='none'
                         onInputChange={inputChangeHandler}
                         touched={touched}
@@ -168,6 +173,7 @@ function Authentication(props) {
                         label='Last Name'
                         keyboardType='default'
                         required
+                        maxLength={20}
                         autoCapitalize='none'
                         onInputChange={inputChangeHandler}
                         touched={touched}
@@ -206,6 +212,7 @@ function Authentication(props) {
     ) 
 }
 
+
 const styles = StyleSheet.create({
     container : {
         flex: 1,
@@ -218,20 +225,20 @@ const styles = StyleSheet.create({
     },
     authContainer: {
         width: containerWidth()/1.5,
-        paddingVertical: 5,
-        paddingHorizontal: 20,
+        paddingVertical: windowHeight/160,
+        paddingHorizontal: windowHeight/40,
     },
     loginContainer: {
-      marginTop: windowHeight >= 750 ? windowHeight/30 : 10,
-      marginBottom:windowHeight >= 750 ? windowHeight/100 : 10
+      marginTop: windowHeight >= 750 ? windowHeight/30 : windowHeight/60,
     },
     signUpContainer: {
-      marginTop: windowHeight >= 750 ? windowHeight/100 : 10,
-      marginBottom: windowHeight >= 750 ? windowHeight/100 : 10
+      marginTop: windowHeight >= 750 ? windowHeight/100 : windowHeight/60,
+      marginBottom: windowHeight >= 750 ? windowHeight/100 : windowHeight/60
     },
     input:{
         paddingVertical: windowHeight >= 750 ? windowHeight/150 : 0,
     }
 })
+
 
 export default Authentication

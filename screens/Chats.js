@@ -1,93 +1,133 @@
-import React, {useState, useEffect, useCallback} from 'react'
-import { View, StyleSheet, AsyncStorage, Alert, RefreshControl, FlatList, Image } from 'react-native'
-import TitleText from '../components/TitleText';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { HOST_URL } from "../settings";
+import React, { useState, useEffect, useCallback } from 'react'
+import { 
+    View, 
+    StyleSheet, 
+    FlatList, 
+    Image,
+    ActivityIndicator,
+} from 'react-native'
 import { useSelector } from "react-redux";
-import { containerWidth, windowHeight, windowWidth } from '../constants/screenSize';
-import WebSocketInstance from '../websocket/chatListWebsocket'
+import { TouchableOpacity } from 'react-native-gesture-handler';
+
+import { HOST_URL } from "../settings";
 import BodyText from '../components/BodyText';
+import TitleText from '../components/TitleText';
+import WebSocketInstance from '../websocket/chatListWebsocket'
+import { 
+    containerWidth, 
+    windowHeight, 
+    windowWidth 
+} from '../constants/screenSize';
 
 
 function Chats(props) {  
 
-    const currentUsername = useSelector(state => state.auth.username)
+    const currentUsername = useSelector(
+        state => state.auth.username
+    )
+
     const [chats, setChats] = useState([])
-    let loading = true
-    let loadingMore = false
-    let moreChatsAvailable= false
+    
+    const [loading, setLoading] = useState(true)
+    // const [loadingMore, setLoadingMore] = useState(false)
+    
+    // let moreChatsAvailable= false
     let chatIndex = 0
+
+    const fetchChats = () => {
+        WebSocketInstance.fetchChats(
+            currentUsername,
+            chatIndex,
+        )
+    }
 
     const waitForSocketConnection = (callback) => {
         setTimeout(function() {
-          if (WebSocketInstance.state() === 1) {
-            console.log("Connection is made");
-            callback();
-            return;
-          } else {
-            console.log("waiting for connection...");
-            waitForSocketConnection(callback);
-          }
+            if (WebSocketInstance.state() === 1) {
+                console.log("Connection is made")
+                callback()
+                return
+            } 
+            else {
+                console.log("waiting for connection...")
+                waitForSocketConnection(callback)
+            }
         }, 100);
     }
 
     const initializeChatList = () => {
         waitForSocketConnection(() => {
-            WebSocketInstance.addCallbacks(setChatList, moreChats, updateChats)
-            WebSocketInstance.fetchChats(
-            currentUsername,
-            chatIndex
-            );
-        });
+            WebSocketInstance.addCallbacks(
+                setChatList, 
+                updateChats,
+                moreChats,
+            )
+        })
         WebSocketInstance.connect(currentUsername)
     }
 
-    const moreChats = (chats) => {
-        if (chats.length===21){
-            setChats(prevChats=>[...prevChats,...chats.slice(0,20)])
-            chatIndex = chatIndex + chats.length-1
-            moreChatsAvailable = true
-        }
-        else if (chats.length<21){
-            setChats(prevChats=>[...prevChats,...chats])
-            chatIndex = chatIndex + chats.length
-            moreChatsAvailable = false
-        }
-        loadingMore = false
+    const setChatList = (receivedChat) => {
+        // if (receivedChat.length === 20){
+        //     moreChatsAvailable = true
+        // }
+        // else {
+        //     moreChatsAvailable = false
+        // }
+        setChats(receivedChat)
+        // chatIndex = chatIndex + receivedChat.length
+        setLoading(false)
     }
 
-    const updateChats = (chat) => {
-        setChats(prevChats=>prevChats.filter(item=>item.id!==chat.id))
-        setChats(prevChats=>[chat,...prevChats])
+    const updateChats = (receivedChat) => {
+        // setChats(
+        //     prevChats => prevChats.filter(
+        //         item => item.id !== receivedChat.id
+        //     )
+        // )
+        // setChats(
+        //     prevChats => [
+        //         receivedChat,
+        //         ...prevChats
+        //     ]
+        // )
     }
 
-    const setChatList = (chats) => {
-        if (chats.length===21){
-            setChats(chats.slice(0,20))
-            chatIndex = chatIndex + chats.length - 1
-            moreChatsAvailable = true
-            
-        }
-        else if (chats.length<21){
-            setChats(chats)
-            chatIndex = chatIndex + chats.length
-            moreChatsAvailable = false
-        }
-        loading = false
+    const moreChats = (receivedChat) => {
+        // if (receivedChat.length === 20){
+        //     moreChatsAvailable = true
+        // }
+        // else {
+        //     moreChatsAvailable = false
+        // }
+        // setChats(
+        //     prevChats=>[
+        //         ...prevChats,
+        //         ...receivedChat
+        //     ]
+        //     )
+        // chatIndex = chatIndex + receivedChat.length
+        // setLoadingMore(false)
     }
 
-    const fetchMoreChats = useCallback(() => {
-        if (moreChatsAvailable){
-            loadingMore = true
-            moreChatsAvailable = false
-            WebSocketInstance.fetchMoreChats(currentUsername,chatIndex)
-        }
-    },[moreChatsAvailable, chatIndex])
+    // const fetchMoreChats = useCallback(() => {
+        // if (moreChatsAvailable){
+        //     setLoadingMore(true)
+        //     moreChatsAvailable = false
+        //     WebSocketInstance.fetchMoreChats(
+        //         currentUsername,
+        //         chatIndex,
+        //     )
+        // }
+    // }, [moreChatsAvailable, chatIndex])
 
     useEffect(() => {
+        const fetchInterval = setInterval(() => {
+            fetchChats()
+        }, 1000)
         initializeChatList()
         return () => {
             WebSocketInstance.disconnect(currentUsername)
+            clearInterval(fetchInterval)
         }
     }, [])
 
@@ -95,54 +135,73 @@ function Chats(props) {
         return (
             <TouchableOpacity 
                 style={styles.rowContainer} 
-                onPress={()=>{
+                onPress={() => {
                     props.navigation.navigate({
-                    routeName:'Chat',
-                    params: {
-                        chatId: item.id,
-                        currentUsername: currentUsername,
-                        username: item.username.find(participant=>participant!==currentUsername)
-                    }
-                })}}>
-                <Image style={styles.image} resizeMode={'cover'} source={{uri:item.user_image ? HOST_URL+item.user_image : 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&w=1000&q=80'}}/>
+                        routeName:'Chat',
+                        params: {
+                            chatId: item.id,
+                            username: item.username.find(
+                                participant=>{
+                                    participant!==currentUsername
+                                }
+                            )
+                        }
+                    })
+                }}>
+                <Image 
+                    style={styles.image} 
+                    resizeMode={'cover'} 
+                    source={{
+                        uri: item.user_image ? 
+                                HOST_URL+item.user_image : 
+                                'image'
+                    }}/>
                 <View>
-                    <TitleText>{item.username.find(participant=>participant!==currentUsername)}</TitleText>
-                    <BodyText>{item.last_message.length>20 ? item.last_message.slice(0,20)+"..." : item.last_message}</BodyText>
+                    <TitleText>
+                        {item.username.find(participant => participant !== currentUsername)}
+                    </TitleText>
+                    {item.visited ?
+                    <BodyText fontSize={windowHeight/70}>
+                        {item.last_message.length > 20 ?
+                            item.last_message.slice(0,20) + "..." :
+                            item.last_message}
+                    </BodyText> :
+                    <TitleText fontSize={windowHeight/70}>
+                        {item.last_message.length > 20 ?
+                            item.last_message.slice(0,20) + "..." :
+                            item.last_message}
+                    </TitleText>}
                 </View>
             </TouchableOpacity>
         )
     }
 
     return (
-        loading ? 
+        !loading ? 
         <View style={styles.container}>
-            {loadingMore && 
-                    <View style={{marginTop:windowHeight/80}}>
-                        <ActivityIndicator size="large"/>
-                    </View>}
+            {/* {loadingMore && 
+            <View style={{marginTop:windowHeight/80}}>
+                <ActivityIndicator size="large"/>
+            </View>} */}
             <FlatList
                 data={chats} 
                 renderItem={chatList}
-                keyExtractor={(item,index)=>item.id.toString()}
-                onEndReached={fetchMoreChats}
-                onEndReachedThreshold={0} 
+                keyExtractor={(item, index)=>item.id.toString()}
+                // onEndReached={fetchMoreChats}
+                // onEndReachedThreshold={0} 
                 initialNumToRender={15}
                 contentConatainerStyle={styles.container}
-                showsVerticalScrollIndicator={false}
-            />
+                showsVerticalScrollIndicator={false}/>
         </View> :
         <View style={styles.loading}>
             <ActivityIndicator size="large"/>
         </View>
-
     )
 }
 
-export default Chats
-
 
 const styles = StyleSheet.create({
-    container : {
+    container: {
         flex:1,
         justifyContent: 'center',
         backgroundColor: 'whitesmoke',
@@ -151,22 +210,26 @@ const styles = StyleSheet.create({
         marginLeft:'auto',
         marginRight:'auto',
     },
-    rowContainer : {
+    rowContainer: {
         flexDirection:'row',
         alignItems: 'center',
         padding:windowHeight/80,
         borderColor:'black',
         borderBottomWidth: 1,
     },
-    image:{
+    image: {
         width:windowWidth/10,
         height:windowWidth/10,
         borderRadius:windowWidth/5,
-        marginRight:windowWidth/20
+        marginRight:windowWidth/20,
+        backgroundColor: 'black',
     },
-    loading:{
+    loading: {
         flex:1,
         alignItems:'center',
         justifyContent:'center'
-    }
+    },
 })
+
+
+export default Chats

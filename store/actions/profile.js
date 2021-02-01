@@ -7,21 +7,21 @@ export const SETPROFILE = 'SETPROFILE'
 export const setProfilePosts = posts => {
     return {
         type: SETPROFILEPOSTS,
-        posts
+        posts,
     }
 }
 
 export const setMoreProfilePosts = posts => {
     return {
         type: SETMOREPROFILEPOSTS,
-        posts
+        posts,
     }
 }
 
 export const setProfilePage = page => {
     return {
         type: SETPROFILEPAGE,
-        page
+        page,
     }
 }
 
@@ -29,13 +29,13 @@ export const likeProfilePost = (postId, post) => {
     return {
         type: LIKEPROFILEPOST,
         postId,
-        post
+        post,
     }
 }
 
 export const setProfile = (profile) => {
     return {
         type: SETPROFILE,
-        profile
+        profile,
     }
 }

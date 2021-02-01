@@ -1,18 +1,39 @@
 import React from 'react'
-import { View, StyleSheet, Image, TouchableOpacity, Text, Alert } from 'react-native'
+import { View, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native'
 import { useSelector, useDispatch } from 'react-redux'
 import { Ionicons, Feather, AntDesign } from '@expo/vector-icons';
+import { Video } from 'expo-av';
+
 import Card from './Card'
-import { LikePost, DeletePost } from '../store/actions/postFunctions'
-import TitleText from './TitleText'
 import BodyText from './BodyText'
-import { containerWidth, windowHeight, windowWidth } from '../constants/screenSize';
+import TitleText from './TitleText'
+import { 
+    LikePost, 
+    DeletePost 
+} from '../store/actions/postFunctions'
+import { 
+    containerWidth, 
+    windowHeight, 
+    windowWidth 
+} from '../constants/screenSize';
 
 
 const PostItem = (props) => {
-    const {id, likes, caption, author, image, author_image, is_liked} = props.data
-    const { userProfile } = props
-    const currentUsername = useSelector(state=>state.auth.username)
+    
+    const {
+        id, 
+        likes, 
+        caption, 
+        author, 
+        media, 
+        author_image, 
+        is_liked
+    } = props.data
+
+    const currentUsername = useSelector(
+        state=>state.auth.username
+    )
+
     const dispatch = useDispatch()
 
     const deletePost = () => {
@@ -24,63 +45,135 @@ const PostItem = (props) => {
                 style: "cancel"
             },
             {
-            text: "Delete",
-            onPress: () => dispatch(DeletePost(id))
+                text: "Delete",
+                onPress: () => dispatch(DeletePost(id))
             }]
           );
     }
 
+    const navigateToComments = () => {
+        props.navigation.navigate({
+            routeName: 'Comments',
+            params: {
+                id: id
+            }
+        })
+    }
+
     const heartSize = windowHeight/32
     const commentSize = windowHeight/30
-    const delelteSize = windowHeight/40
+    const delelteSize = windowHeight/35
 
     return (
         <Card style={styles.card}>
-            <View style={styles.rowContainer}>
+            <View 
+                style={{
+                    ...styles.rowContainer, 
+                    marginTop: 0,
+                }}>
                 <View style={styles.usernameContainer}>
-                <TouchableOpacity style={styles.usernameContainer}
-                    onPress={()=>{
-                        props.navigation.navigate({
-                            routeName: currentUsername === author ? 'UserDetail' : 'UserProfile',
-                            params:{
-                                username:author
-                            }
-                        })
-                    }
-                }>
-                <Image style={styles.authorImage} resizeMode={'cover'} source={{uri: author_image ? author_image : 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&w=1000&q=80'}}/>
-                <TitleText>{author}</TitleText>
-                </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={styles.usernameContainer}
+                        onPress={()=>{
+                            props.navigation.navigate({
+                                routeName: currentUsername === author ? 
+                                            'UserDetail' : 
+                                            'UserProfile',
+                                params: {
+                                    username: author
+                                }
+                            })
+                        }}>
+                        <Image 
+                            style={styles.authorImage} 
+                            resizeMode={'cover'} 
+                            source={{
+                                uri: author_image ? 
+                                        author_image : 
+                                        'media'
+                            }}/>
+                        <TitleText>
+                            {author}
+                        </TitleText>
+                    </TouchableOpacity>
                 </View>
                 {currentUsername === author &&
                 <TouchableOpacity
-                onPress={()=>deletePost(id)}>
-                    <Ionicons name="ios-trash" size={delelteSize} color={'black'} />
+                    onPress={()=>deletePost(id)}>
+                    <Ionicons 
+                        name="ios-trash" 
+                        size={delelteSize} 
+                        color={'black'}/>
                 </TouchableOpacity>}
             </View>
             <View style={styles.contentContainer}>
-                {image && <Image style={styles.image} resizeMode={'cover'} source={{uri:image}}/>}
+                {media &&
+                <>
+                    {media.match(/\.(jpeg|jpg|png)$/) != null &&<Image 
+                        style={styles.image} 
+                        resizeMode={'cover'} 
+                        source={{
+                            uri: media ?
+                                    media :
+                                    'media'
+                        }}/>}
+                    {media.match(/\.(mp4|mov|3gp)$/) != null &&<Video
+                        style={styles.image}
+                        source={{ 
+                            uri: media ? 
+                                    media :
+                                    'media'
+                        }}
+                        resizeMode='cover'
+                        rate={1.0}
+                        volume={1.0}
+                        isMuted={false}
+                        shouldPlay />}
+                </>}
             </View>
-            <View style={styles.captionContainer}>
-                <BodyText>{caption}</BodyText>
-            </View>
+            {caption &&
+            <View 
+                style={{
+                    ...styles.captionContainer,
+                    marginTop: media ?
+                                windowHeight/100 :
+                                0,
+                    }}>
+                <BodyText>
+                    {caption}
+                </BodyText>
+            </View>}
             <View  style={styles.rowContainer}>
                 <TouchableOpacity 
                     onPress={
                         ()=>dispatch(LikePost(id, is_liked))
                     }>
-                    <AntDesign name={is_liked ? 'heart' : 'hearto'} color={'red'} size={heartSize}/> 
+                    <AntDesign 
+                        name={
+                            is_liked ? 
+                                'heart' : 
+                                'hearto'
+                        } 
+                        color={'red'} 
+                        size={heartSize} /> 
                 </TouchableOpacity>
-                    <TitleText>Liked By {likes.length}</TitleText>
-                <TouchableOpacity>
-                    <Feather name="message-circle" size={commentSize} color={'black'} />
+                    <TitleText>
+                        Liked By {likes.length}
+                    </TitleText>
+                <TouchableOpacity
+                    onPress={navigateToComments}>
+                    <Feather 
+                        name="message-circle" 
+                        size={commentSize} 
+                        color={'black'} />
                 </TouchableOpacity>
             </View>
         </Card>
 )}
 
+
 const width = () => {
-    if(windowHeight>1.3*windowWidth){
+    if(windowHeight > (1.3 * windowWidth)){
         return containerWidth()
     }
     else{
@@ -88,13 +181,15 @@ const width = () => {
     }
 }
 
+
 const styles = StyleSheet.create({
     rowContainer : {
-        flexDirection:'row',
+        flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal:windowWidth/40,
-        marginBottom:windowHeight > 900 ? 10 : 5
+        paddingHorizontal: windowWidth/40,
+        marginTop: windowHeight/100,
+        marginBottom: windowHeight > 900 ? 10 : 5
     },
     usernameContainer:{
         flexDirection:'row',
@@ -103,24 +198,25 @@ const styles = StyleSheet.create({
     captionContainer : {
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop:windowHeight/100,
-        marginBottom:windowHeight/200
     },
     image:{
-        width:width(),
-        height:width()
+        width: width(),
+        height: width(),
+        backgroundColor: 'black',
     },
     authorImage:{
-        width:windowHeight/20,
-        height:windowHeight/20,
-        borderRadius:windowHeight/40,
-        marginRight:windowWidth/40,
+        width: windowHeight/20,
+        height: windowHeight/20,
+        borderRadius: windowHeight/40,
+        marginRight: windowWidth/40,
+        backgroundColor: 'black',
     },
     card:{
-        marginBottom:windowHeight/40,
-        borderRadius:0,
-        paddingTop:windowHeight > 900 ? 10 : 5
+        marginBottom: windowHeight/40,
+        borderRadius: 0,
+        paddingTop: windowHeight > 900 ? 10 : 5
     }
 })
+
 
 export default React.memo(PostItem)

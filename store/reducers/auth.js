@@ -1,4 +1,9 @@
-import { AUTHERROR, AUTHSUCCESS, AUTHSTART, LOGOUT} from '../actions/auth';
+import { 
+    AUTHERROR, 
+    AUTHSUCCESS, 
+    AUTHSTART, 
+    LOGOUT
+} from '../actions/auth';
 
 
 initialState = {
@@ -8,13 +13,14 @@ initialState = {
     loading: null
 }
 
+
 export const authReducer = (state=initialState,action) => {
     switch(action.type){
         case AUTHSTART:
             return {
                 ...state,
                 loading: true,
-                error:null,
+                error: null,
                 token : null,
                 userId : null,
             }
@@ -24,13 +30,13 @@ export const authReducer = (state=initialState,action) => {
                 token : action.token,
                 username : action.username,
                 loading: null,
-                error:null
+                error: null,
             }
         case AUTHERROR:
                 return {
                     ...state,
                     error: action.error,
-                    loading:null
+                    loading: null,
                 }
         case LOGOUT:
                 return {

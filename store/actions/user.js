@@ -13,21 +13,21 @@ export const DECREASEPOSTS = 'DECREASEPOSTS'
 export const setUserPosts = posts => {
     return {
         type: SETUSERPOSTS,
-        posts
+        posts,
     }
 }
 
 export const setMoreUserPosts = posts => {
     return {
         type: SETMOREUSERPOSTS,
-        posts
+        posts,
     }
 }
 
 export const setUserPage = page => {
     return {
         type: SETUSERPAGE,
-        page
+        page,
     }
 }
 
@@ -35,28 +35,28 @@ export const likeUserPost = (postId, post) => {
     return {
         type: LIKEUSERPOST,
         postId,
-        post
+        post,
     }
 }
 
 export const addUserPost = post => {
     return {
         type: ADDUSERPOST,
-        post
+        post,
     }
 }
 
 export const deleteUserPost = id => {
     return {
         type: DELETEUSERPOST,
-        id
+        id,
     }
 }
 
 export const setUserProfile = profile => {
     return {
         type: SETUSERPROFILE,
-        profile
+        profile,
     }
 }
 

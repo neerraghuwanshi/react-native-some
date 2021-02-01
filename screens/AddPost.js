@@ -1,70 +1,63 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { View, StyleSheet, Image, TextInput } from 'react-native'
 import { useDispatch } from "react-redux";
-import * as ImagePicker from 'expo-image-picker';
-import Constants from 'expo-constants'
-import { CreatePost } from '../store/actions/postFunctions'
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { Video } from 'expo-av';
 
 import Card from '../components/Card'
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { containerWidth, windowHeight } from '../constants/screenSize';
 import Button from '../components/Button'
+import { pickImage } from '../helpers/pickImage'
+import { CreatePost } from '../store/actions/postFunctions'
+import { 
+    containerWidth, 
+    windowHeight 
+} from '../constants/screenSize';
 
 
 function AddPost(props) {
 
-    const [image, setImage] = useState(null);
+    const [media, setMedia] = useState(null);
     const [caption, setCaption] = useState(null);
+
     const dispatch = useDispatch()
 
     const inputChangeHandler = (text) => {
-      if (text.length < 80){
-        setCaption(text)
-        console.log(text.length)
-      }
+        if (text.length < 80){
+            setCaption(text)
+        }
     }
 
-    useEffect(() => {
-        (async () => {
-          if (Constants.platform.ios) {
-            const { status } = await ImagePicker.requestCameraRollPermissionsAsync();
-            if (status !== 'granted') {
-              alert('Sorry, we need camera roll permissions to make this work!');
-            }
-          }
-        })();
-    }, []);
-
-    const pickImage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 1
-        });
-
-        if (!result.cancelled) {
-          setImage(result);
-        }
-    };
-
-    const postButton = image || caption
+    const postButton = media || caption
 
     return (
         <View style={styles.container}>
             <Card style={styles.postContainer}>
-                {image ? 
-                <TouchableOpacity onPress={pickImage}>
+                {media ? 
+                <TouchableOpacity 
+                    onPress={()=>pickImage(setMedia)}>
+                    {media.type === 'image' ?
                     <Image
                         style={styles.image}
-                        resizeMode={'cover'}
-                        source={{uri: image && image.uri}}/> 
+                        source={{uri: media.uri}}
+                        resizeMode='cover'/> :
+                    <Video
+                        style={styles.image}
+                        source={{ uri: media.uri }}
+                        resizeMode='cover'
+                        rate={1.0}
+                        volume={1.0}
+                        isMuted={false}
+                        shouldPlay/>}
                 </TouchableOpacity> :
                 <View style={styles.imageButtonContainer}>
-                    <Button title="Choose Image" onPress={pickImage} style={styles.button}/>
+                    <Button 
+                        title="Choose From Gallery" 
+                        onPress={()=>pickImage(setMedia)} 
+                        style={styles.button}/>
                 </View>}
                 <TextInput
-                    style={styles.input}w
+                    style={styles.input}
+                    multiline
                     keyboardType='default'
                     autoCapitalize='none'
                     onChangeText={inputChangeHandler}
@@ -72,14 +65,13 @@ function AddPost(props) {
                     placeholder='Caption'/>
             </Card>
             {postButton ?
-              <View style={styles.buttonContainer}>
-                  <Button
-                      title={'Post'}
-                      onPress={
-                          ()=>dispatch(CreatePost(image,caption, props.navigation))
-                      }/>
-              </View> :
-            null}
+            <View style={styles.buttonContainer}>
+                <Button
+                    title={'Post'}
+                    onPress={()=>{
+                        dispatch(CreatePost(media, caption, props.navigation))
+                    }}/>
+            </View> : null}
         </View>
     )
 }
@@ -96,15 +88,15 @@ const styles = StyleSheet.create({
         width:containerWidth(),
     },
     postContainer: {
-      width: containerWidth()/1.25,
-      paddingBottom: 10,
-      borderRadius:0,
+        width: containerWidth()/1.25,
+        paddingBottom: 10,
+        borderRadius:0,
     },
     buttonContainer: {
-      marginTop: windowHeight >= 750 ? windowHeight/40 : 15,
+        marginTop: windowHeight >= 750 ? windowHeight/40 : 15,
     },
     imageButtonContainer: {
-      marginBottom: windowHeight >= 750 ? windowHeight/100 : 10,
+        marginBottom: windowHeight >= 750 ? windowHeight/100 : 10,
     },
     image:{
         width:containerWidth()/1.25,
@@ -112,14 +104,16 @@ const styles = StyleSheet.create({
         marginBottom: windowHeight >= 750 ? windowHeight/100 : 10,
     },
     input:{
-      textAlign:"center",
-      fontFamily:'open-sans',
-      fontSize:windowHeight/60,
-      color:'black',
+        textAlign:"center",
+        fontFamily:'open-sans',
+        paddingHorizontal: 10,
+        fontSize:windowHeight/60,
+        color:'black',
     },
     button:{
-      borderRadius:0
+        borderRadius:0
     }
 })
+
 
 export default AddPost

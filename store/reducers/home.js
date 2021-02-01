@@ -9,8 +9,8 @@ import {
 
 
 initialState = {
-    homePosts:[],
-    homePage:null,
+    homePosts: [],
+    homePage: null,
 }
 
 export const homePostReducer = (state=initialState,action) => {
@@ -18,30 +18,38 @@ export const homePostReducer = (state=initialState,action) => {
         case SETHOMEPOSTS:
             return {
                 ...state,
-                homePosts: action.posts
+                homePosts: action.posts,
             }
         case SETMOREHOMEPOSTS:
-            const morePosts = [...state.homePosts, ...action.posts]
+            const morePosts = [
+                ...state.homePosts, 
+                ...action.posts,
+            ]
             return {
                 ...state,
-                homePosts: morePosts 
+                homePosts: morePosts,
             }
         case SETHOMEPAGE:
             return {
                 ...state,
-                homePage: action.page
+                homePage: action.page,
             }
         case ADDHOMEPOST:
             if(state.homePosts){
-                const addedPosts = [action.post, ...state.homePosts,]
+                const addedPosts = [
+                    action.post, 
+                    ...state.homePosts,
+                ]
                 return {
                     ...state,
-                    homePosts: addedPosts
+                    homePosts: addedPosts,
                 }
             }
         case LIKEHOMEPOST:
             if(state.homePosts){
-                let homePostIndex = state.homePosts.findIndex(post=>post.id===action.postId)
+                let homePostIndex = state.homePosts.findIndex(
+                    post => post.id === action.postId
+                )
                 const updatedHomePosts = [...state.homePosts]
     
                 if(homePostIndex >= 0){
@@ -49,14 +57,18 @@ export const homePostReducer = (state=initialState,action) => {
                 }
                 return {
                     ...state,
-                    homePosts: updatedHomePosts
+                    homePosts: updatedHomePosts,
                 }
             }
         case DELETEHOMEPOST: 
             if(state.homePosts){
                 return {
                     ...state,
-                    homePosts: state.homePosts && state.homePosts.filter(post => post.id !== action.id) 
+                    homePosts: state.homePosts ? 
+                                state.homePosts.filter(
+                                    post => post.id !== action.id
+                                ) :
+                                [],
                 }
             }
         default:

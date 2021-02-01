@@ -1,24 +1,24 @@
- export const SETCHATPAGE =  'SETCHATPAGE'
- export const SETCHATMESSAGES =  'SETCHATMESSAGES'
- export const SETMORECHATMESSAGES =  'SETMORECHATMESSAGES'
+export const SETCHATPAGE =  'SETCHATPAGE'
+export const SETCHATMESSAGES =  'SETCHATMESSAGES'
+export const SETMORECHATMESSAGES =  'SETMORECHATMESSAGES'
 
 export const setChatPage = (page) => {
     return {
         type: SETCHATPAGE,
-        page
+        page,
     }
 }
 
 export const setChatMessages = messages => {
     return {
         type: SETCHATMESSAGES,
-        messages
+        messages,
     }
 }
 
 export const setMoreChatMessages = messages => {
     return {
         type: SETMORECHATMESSAGES,
-        messages
+        messages,
     }
 }

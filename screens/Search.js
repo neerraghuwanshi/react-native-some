@@ -1,20 +1,27 @@
 import React, {useState, useCallback} from 'react'
 import { View, TextInput, StyleSheet, Image } from 'react-native'
 import axios from 'axios'
-import {useSelector} from 'react-redux'
+import { useSelector } from 'react-redux'
+import { TouchableOpacity } from 'react-native-gesture-handler';
+
 import TitleText from '../components/TitleText';
 import BodyText from '../components/BodyText';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { containerWidth, windowHeight, windowWidth } from '../constants/screenSize';
+import { 
+    containerWidth, 
+    windowHeight, 
+    windowWidth 
+} from '../constants/screenSize';
+
 
 function Search(props) {  
 
     const [searchTerm, setSearchTerm] = useState('')
     const [error, setError] = useState(false)
-
     const [userData, setUserData] = useState(null)
 
-    const currentUsername = useSelector(state => state.auth.username)
+    const currentUsername = useSelector(
+        state => state.auth.username
+    )
 
     const fetchUserProfile = useCallback((username) => {
         axios.get(`http://127.0.0.1:8000/userprofile/${username}/`)
@@ -23,14 +30,16 @@ function Search(props) {
             setError(false)
         })
         .catch(()=>setError(true))
-    },[])
+    }, [])
 
     const getUserProfile = (username) => {
         props.navigation.navigate({
-            routeName: username===currentUsername ? 'UserDetail' : 'UserProfile',
-            params:{
+            routeName: username === currentUsername ? 
+                            'UserDetail' : 
+                            'UserProfile',
+            params: {
                 username
-            }
+            },
         })
     }
 
@@ -53,11 +62,24 @@ function Search(props) {
                     style={styles.rowContainer} 
                     onPress={()=>getUserProfile(searchTerm)}>
                     <View style={styles.imageContainer}>
-                        <Image style={styles.image} resizeMode={'cover'} source={{uri: userData.image ? userData.image :'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&w=1000&q=80'}}/>
+                        <Image 
+                            style={styles.image} 
+                            resizeMode={'cover'} 
+                            source={{
+                                uri: userData.image ? 
+                                        userData.image :
+                                        'image'
+                            }}/>
                     </View>
                     <View style={styles.usernameContainer}>
-                        <TitleText>{userData.username}</TitleText>
-                        <BodyText>{userData.first_name}{' '}{userData.last_name}</BodyText>
+                        <TitleText>
+                            {userData.username}
+                        </TitleText>
+                        <BodyText>
+                            {userData.first_name}
+                            {' '}
+                            {userData.last_name}
+                        </BodyText>
                     </View>
                 </TouchableOpacity>
             </View>}
@@ -68,6 +90,7 @@ function Search(props) {
         </View>
     )
 }
+
 
 const styles = StyleSheet.create({
     container : {
@@ -102,7 +125,8 @@ const styles = StyleSheet.create({
         width:windowWidth/7,
         height:windowWidth/7,
         borderRadius:windowWidth/14,
-        marginRight:windowWidth/20
+        marginRight:windowWidth/20,
+        backgroundColor: 'black',
     },
     usernameContainer : {
         justifyContent:'center',
@@ -114,5 +138,6 @@ const styles = StyleSheet.create({
         marginTop:windowHeight/10,
     },
 })
+
 
 export default React.memo(Search)
